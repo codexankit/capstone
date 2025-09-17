@@ -1,5 +1,7 @@
 import React, { useRef, useState, useMemo } from "react";
-import Navbar from "../components/Navbar/Navbar";
+//import Navbar from "../components/Navbar/Navbar";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 import {
   Box,
   Container,
@@ -26,9 +28,11 @@ import {
   Th,
   Td,
   useToast,
+  Select
 } from "@chakra-ui/react";
 import { ViewIcon } from "@chakra-ui/icons";
-import CustomStepper from "../components/Stepper/CustomStepper";
+//import CustomStepper from "../components/Stepper/CustomStepper";
+import CustomStepper from "../components/CustomStepper";
 
 
 const DocumentUploadPage = () => {
@@ -46,12 +50,15 @@ const DocumentUploadPage = () => {
   };
 
   // --- files state ---
-  const [files, setFiles] = useState({ aadhar: null, pan: null, income: null });
-
-  const aadharRef = useRef(null);
+  
+  const [files, setFiles] = useState({ addressProof: null, pan: null, income: null});
+  const [addressProofType, setAddressProofType] = useState("");
+  
+  const addressProofRef = useRef(null);
   const panRef = useRef(null);
   const incomeRef = useRef(null);
 
+  const navigate = useNavigate();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -61,8 +68,9 @@ const DocumentUploadPage = () => {
   };
 
   const handleReset = () => {
-    setFiles({ aadhar: null, pan: null, income: null });
-    if (aadharRef.current) aadharRef.current.value = "";
+    setFiles({ addressProof: null, pan: null, income: null });
+    setAddressProofType("");
+    if (addressProofRef.current) addressProofRef.current.value = "";
     if (panRef.current) panRef.current.value = "";
     if (incomeRef.current) incomeRef.current.value = "";
     toast({ title: "Cleared", status: "info", duration: 1500, isClosable: true });
@@ -81,19 +89,20 @@ const DocumentUploadPage = () => {
     // TODO: call the backend API with `files` + form data
     toast({ title: "Application submitted", status: "success", duration: 1800, isClosable: true });
     onClose();
+    navigate('/dashboard');
   };
 
   // creating object URLs for current files (so that the "View" can open them in a new tab)
   const previewUrls = useMemo(() => {
     const make = (f) => (f ? URL.createObjectURL(f) : null);
     return {
-      pan: make(files.pan),
-      aadhar: make(files.aadhar),
+      addressProof: make(files.addressProof),
+      pan: make(files.pan),      
       income: make(files.income),
     };
   }, [files]);
 
-  const allFilesChosen = !!(files.aadhar && files.pan && files.income);
+  const allFilesChosen = !!(files.addressProof && files.pan && files.income);
 
   return (
     <>
@@ -114,15 +123,30 @@ const DocumentUploadPage = () => {
           <Divider my={4} />
 
           <Stack spacing={5}>
-            <FormControl isRequired>
-              <FormLabel>Upload Aadhar Card</FormLabel>
-              <Input
-                ref={aadharRef}
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => handleFileChange("aadhar", e)}
-              />
-            </FormControl>
+          <FormControl isRequired>
+            <FormLabel>Upload Address Proof</FormLabel>
+            <Select
+              placeholder="Select Address Proof"
+              value={addressProofType}
+              onChange={(e) => setAddressProofType(e.target.value)}
+              >
+              <option value="aadhar"> Aadhar Card</option>
+              <option value="voter"> Voter Card</option>
+              <option value="passport"> Passport</option>
+            </Select>
+            <Input
+              mt={3}
+              ref={addressProofRef}
+              type="file"
+              accept=".pdf, .png, .jpg, .jpeg"
+              isDisabled={!addressProofType}
+              title={!addressProofType ? "Please select the Address Proof type first" : ""}
+              borderColor={!addressProofType ? "red.300" : "gray.300"}
+              _hover={{ borderColor: !addressProofType ? "red.400" : "blue.400" }}
+              _disabled={{ opacity: 0.7, cursor: "not-allowed"}}
+              onChange={(e) => handleFileChange("addressProof", e)}
+            />
+          </FormControl>
 
             <FormControl isRequired>
               <FormLabel>Upload PAN Card</FormLabel>
@@ -133,7 +157,7 @@ const DocumentUploadPage = () => {
                 onChange={(e) => handleFileChange("pan", e)}
               />
             </FormControl>
-
+            
             <FormControl isRequired>
               <FormLabel>Upload Income Proof</FormLabel>
               <Input
@@ -143,6 +167,8 @@ const DocumentUploadPage = () => {
                 onChange={(e) => handleFileChange("income", e)}
               />
             </FormControl>
+          
+          
           </Stack>
 
           <HStack mt={8} justify="space-between">
@@ -196,15 +222,17 @@ const DocumentUploadPage = () => {
                   </Td>
                 </Tr>
                 <Tr>
-                  <Th>AADHAR CARD</Th>
+                  <Th>
+                    {`ADDRESS PROOF${addressProofType ? ` (${addressProofType.toUpperCase()})` : ""}`}
+                  </Th>
                   <Td>
                     <Button
                         leftIcon={<ViewIcon />}
                         size="sm"
                         colorScheme="scbBlue"
                         variant="solid"
-                        isDisabled={!previewUrls.aadhar}
-                        onClick={() => previewUrls.aadhar && window.open(previewUrls.aadhar, "_blank")}
+                        isDisabled={!previewUrls.addressProof}
+                        onClick={() => previewUrls.addressProof && window.open(previewUrls.addressProof, "_blank")}
                         >
                         View
                     </Button>
@@ -231,7 +259,7 @@ const DocumentUploadPage = () => {
           </ModalBody>
 
           <ModalFooter gap={3}>
-            <Button colorScheme="scbBlue" onClick={onClose}>Edit</Button>
+            {/*<Button colorScheme="scbBlue" onClick={onClose}>Edit</Button>*/}
             <Button colorScheme="scbBlue" onClick={handleSubmit} isDisabled={!allFilesChosen}>
               Submit
             </Button>

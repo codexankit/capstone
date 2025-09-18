@@ -1,34 +1,41 @@
 import React, { useRef, useState, useMemo } from "react";
-//import Navbar from "../components/Navbar/Navbar";
-import { useNavigate } from "react-router-dom";
+/*
+Hooks:
+1. useRef - to keep reference to each file input DOM elements - to reset the file input to blank
+2. useState - keeps track of the selected file objects, updated whenever a new file is uploaded
+            - later we are using it to build preview URLs and to check if all files are chosen
+3. useMemo - wrapped in useMemo so that the URLs are recomputed only when a file changes ocuurs and not on 
+              every render
+*/
+import { useNavigate } from "react-router-dom"; // for navigation
 import Navbar from "../components/Navbar";
 import {
-  Box,
-  Container,
-  Heading,
-  Text,
-  Divider,
-  FormControl,
-  FormLabel,
-  Input,
-  HStack,
+  Box, // a generic container just like a div, i am using it for card wrapper
+  Container, //a responsive container - centers and adds horizontal padding
+  Heading, // used for Step 3: Documents Upload
+  Text, // for inline text
+  Divider, // horizontal line to separate the title and form
+  FormControl, //wraps each field and handles isRequired, validation states
+  FormLabel, // label for input field
+  Input, // input box for file uploads
+  HStack, // lays children side by side - previous, reset, preview
   Button,
-  Stack,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  Table,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  useToast,
-  Select
+  Stack, // for spacing vertically
+  useDisclosure, // hook that controls modal open/close
+  Modal, // wrapper component for the popup
+  ModalOverlay, // darkened background behind the model
+  ModalContent, // the white box that holds everything inside the modal
+  ModalHeader, // title bar of the modal
+  ModalCloseButton, // a small button in corner to close the modal
+  ModalBody, // scrollable content area
+  ModalFooter, // the bottom row for action buttons - submit, close
+  Table, // table inside the preview modal
+  Tbody, // body section of the table
+  Tr, // table row
+  Th, // table header
+  Td, // table data cell
+  useToast, // hook for showing a small popup
+  Select // for selecting the address proof document type
 } from "@chakra-ui/react";
 import { ViewIcon } from "@chakra-ui/icons";
 //import CustomStepper from "../components/Stepper/CustomStepper";
@@ -49,7 +56,7 @@ const DocumentUploadPage = () => {
     product: "Gold",
   };
 
-  // --- files state ---
+  // files states
   
   const [files, setFiles] = useState({ addressProof: null, pan: null, income: null});
   const [addressProofType, setAddressProofType] = useState("");

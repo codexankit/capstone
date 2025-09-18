@@ -59,38 +59,171 @@ const DocumentUploadPage = () => {
   // files states
   
   const [files, setFiles] = useState({ addressProof: null, pan: null, income: null});
+// useState initializes a state variable 'files' - it starts with an object where all three file slots are currently null.
+// setFiles - this is the function to update the state variable when file is uploaded
+
+            
+
+            
   const [addressProofType, setAddressProofType] = useState("");
+// another state variable - stores which type of address proof
+// set address proof type - function to change whenever user chooses from the dropdown
+
+            
   
   const addressProofRef = useRef(null);
   const panRef = useRef(null);
   const incomeRef = useRef(null);
+// About the above 3 lines:
+// these are refs pointing to the actual files elements in the dom
+// useful because react cant directly reset a file input by just changing the state
+// they are getting used in handleReset
+
+            
 
   const navigate = useNavigate();
+// for navigation between the pages
+
+            
+
   const toast = useToast();
+// a hook for showing small popup
+
+            
+            
   const { isOpen, onOpen, onClose } = useDisclosure();
+// useDisclosure is also a hook - this is getting used in Modal
+// isOpen - boolean - modal is opened or not
+// onOpen - function to open the modal
+// onClose - function to close the modal
+
+            
 
   const handleFileChange = (key, e) => {
     const file = e.target.files?.[0] ?? null;
     setFiles((p) => ({ ...p, [key]: file }));
   };
+/* the above code block is Event handler for file input
+// basics - this is javascript arrow function - 
+there are two inputs:
+1. key - a string telling us which field is getting updated
+2. e - event object
 
-  const handleReset = () => {
-    setFiles({ addressProof: null, pan: null, income: null });
-    setAddressProofType("");
+e.target - the element that triggered the event
+for an <input type="file"> the browser provides an array-like object called a FileList - it contains all the files user selected
+e.target.files - array like list of files chosen - a FileList
+[0] - by writing zero we are taking the first file in the list - why? - because we are allowing only one file per field - so we only need the array[0]
+?? - if nothing is selected, use null as fallback - if user selects a file then 'file' becomes a 'File' object, otherwise it is null
+
+setFiles is the updater function for react state files
+p - previous state (before update) - example: p = { addressProof: FileObj, pan: null, income: FileObj }
+{ ...p, [key]: file } = make a new object
+...p = copy everything from the previous state
+[key]: file = overwrite only the field specified by file
+
+so if key = pan, then new state p is: p = { addressProof: (old value), pan: File("pan.pdf"), income: (old value) }
+
+How its called? - 
+<Input
+  type="file"
+  onChange={(e) => handleFileChange("pan", e)}
+/>
+
+*/
+
+
+            
+
+  const handleReset = () => { // an array function that runs when the user clicks the reset button
+    setFiles({ addressProof: null, pan: null, income: null }); // this resets the file states to null
+    setAddressProofType(""); // clears the dropdown value
     if (addressProofRef.current) addressProofRef.current.value = "";
     if (panRef.current) panRef.current.value = "";
     if (incomeRef.current) incomeRef.current.value = "";
     toast({ title: "Cleared", status: "info", duration: 1500, isClosable: true });
   };
+/*
+const handleReset = () => {      defining an arrow function - this runs when the user clicks the reset button
+what is useRef? - when we write const addressProofRef = useRef(null)
+basically it means we are creating a ref object
+and this object looks like: { current: null }
+by passing ref = {addressProofRef} we tell react that put a reference to this <Input> element inside addressProofRef.current
+and since chakra's ui is ultimately built on HTML so after rendering addressProofRef.current = HTMLInputElement
 
+
+what is addressProofRef.current.value?
+- this will hold the file path string 
+- and when addressProofRef.current.value = ""     // we are forcing the input's value to be empty
+
+
+
+TOAST
+
+toast({ title: "Cleared", status: "info", duration: 1500, isClosable: true });
+Explanation of each thing:
+Shows a small popup notification (toast) at the corner of the screen.
+1. title: "Cleared" → text shown in the toast.
+2. status: "info" → styling (blue/info look).
+3. duration: 1500 → visible for 1.5 seconds.
+4. isClosable: true → user can dismiss it early by clicking ✖️.
+*/
+
+ 
+            
+            
   const handlePrev = () => {
     // wire to our stepper/router later
     console.log("Prev clicked");
   };
+/*
+When we click the previous button the handlePrev function will run
 
-  const handlePreview = () => {
+Rn this function is just the placeholder for the 'Previous' button
+ - later on we will wire it to router and stepper
+ - for the stepper, update the currentState - decrease it
+*/
+
+  
+            
+            
+const handlePreview = () => {
     onOpen();
-  };
+};
+/*
+Arrow function that runs when the Preview button is clicked
+- no arguments
+- what is onOpen()?    
+    - its a chakra's hook
+    - onOpen - a function to set isOpen = true
+
+So for now when we clicking the Preview - handlePreview is getting called - and inside that onOpen is
+getting called - and it is changing isOpen -> true
+
+
+WHY??
+
+Because our Modal is written like this
+< Modal isOpen={isOpen} onClose={onClose} .... >
+....
+</Modal>
+
+That means:
+- when isOpen=false, the Modal is hidden
+- when isOpen=true, the Modal is displayed
+
+
+
+
+Where the handlePreview is getting used?
+
+<Button colorScheme="scbGreen" onClick={handlePreview} isDisabled={!allFilesChosen}>
+  Preview
+</Button>
+
+- When the user clicks Preview, react runs the handlePreview
+- inside the handlePreview, onOpen() sets the Modal state to true
+- Result - the Preview Modal pops up
+*/
 
   const handleSubmit = () => {
     // TODO: call the backend API with `files` + form data

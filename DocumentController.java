@@ -2,6 +2,7 @@ package com.scb.axessspringboottraining.controller;
 
 import com.scb.axessspringboottraining.dto.DocumentRequest;
 import com.scb.axessspringboottraining.dto.DocumentResponse;
+import com.scb.axessspringboottraining.entities.Document;
 import com.scb.axessspringboottraining.service.DocumentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +20,12 @@ public class DocumentController {
     }
 
     /**
-     * Endpoint to create a new Document.
+     * POST /api/documents
+     * Create a new Document. Accepts form-data with files.
      *
-     * Expects:
-     *   - applicationNumber
-     *   - customerId
-     *   - addressProofType
-     *   - addressProof, panProof, incomeProof (all MultipartFile, required)
-     *
-     * Sets statuses as "UPLOADED" by default.
+     * Note:
+     *  - Service returns Document (entity). We map it to DocumentResponse here.
+     *  - If your DocumentRequest adds status fields, you can set them to "UPLOADED" below.
      */
     @PostMapping
     public ResponseEntity<DocumentResponse> createDocument(
@@ -47,51 +45,65 @@ public class DocumentController {
             request.setAddressProof(addressProof);
             request.setPanProof(panProof);
             request.setIncomeProof(incomeProof);
-    
-            request.setAddressProofStatus("UPLOADED");
-            request.setPanProofStatus("UPLOADED");
-            request.setIncomeProofStatus("UPLOADED");
-    
-            // call service → returns Document entity
+
+            // If your DocumentRequest has these fields, you can keep them;
+            // if not, remove these three lines (service can set defaults).
+            // request.setAddressProofStatus("UPLOADED");
+            // request.setPanProofStatus("UPLOADED");
+            // request.setIncomeProofStatus("UPLOADED");
+
+            // Service returns entity
             Document saved = documentService.createDocument(request);
-    
-            // map Document → DocumentResponse
-            DocumentResponse response = new DocumentResponse();
-            response.setDocumentId(saved.getDocumentId());
-            response.setApplicationNumber(saved.getApplicationNumber());
-            response.setCustomerId(saved.getCustomerId());
-            response.setAddressProofType(saved.getAddressProofType());
-    
-            response.setAddressProofPath(saved.getAddressProofAddress());
-            response.setPanProofPath(saved.getPanAddress());
-            response.setIncomeProofPath(saved.getIncomeProofAddress());
-    
-            response.setAddressProofStatus(saved.getAddressProofStatus());
-            response.setPanProofStatus(saved.getPanStatus());
-            response.setIncomeProofStatus(saved.getIncomeProofStatus());
-    
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-    
+
+            // Map entity -> response DTO
+            DocumentResponse resp = toResponse(saved);
+
+            return new ResponseEntity<>(resp, HttpStatus.CREATED);
+
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
     /**
-     * Endpoint to fetch Document by ID.
+     * GET /api/documents/{id}
+     * Retrieve a Document by id. Maps entity → response DTO.
      */
     @GetMapping("/{id}")
     public ResponseEntity<DocumentResponse> getDocumentById(@PathVariable("id") Integer documentId) {
         try {
-            DocumentResponse response = documentService.getDocumentById(documentId);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            // Service returns entity
+            Document doc = documentService.getDocumentById(documentId);
+
+            // Map entity -> response DTO
+            DocumentResponse resp = toResponse(doc);
+
+            return new ResponseEntity<>(resp, HttpStatus.OK);
 
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    // --- Mapper: Document entity -> DocumentResponse DTO ---
+    private static DocumentResponse toResponse(Document d) {
+        DocumentResponse resp = new DocumentResponse();
+        resp.setDocumentId(d.getDocumentId());
+        resp.setApplicationNumber(d.getApplicationNumber());
+        resp.setCustomerId(d.getCustomerId());
+        resp.setAddressProofType(d.getAddressProofType());
+
+        resp.setAddressProofPath(d.getAddressProofAddress());
+        resp.setPanProofPath(d.getPanAddress());
+        resp.setIncomeProofPath(d.getIncomeProofAddress());
+
+        resp.setAddressProofStatus(d.getAddressProofStatus());
+        resp.setPanProofStatus(d.getPanStatus());
+        resp.setIncomeProofStatus(d.getIncomeProofStatus());
+        return resp;
     }
 }

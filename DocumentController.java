@@ -47,19 +47,36 @@ public class DocumentController {
             request.setAddressProof(addressProof);
             request.setPanProof(panProof);
             request.setIncomeProof(incomeProof);
-
-            // Set default statuses
+    
             request.setAddressProofStatus("UPLOADED");
             request.setPanProofStatus("UPLOADED");
             request.setIncomeProofStatus("UPLOADED");
-
-            DocumentResponse response = documentService.createDocument(request);
+    
+            // call service → returns Document entity
+            Document saved = documentService.createDocument(request);
+    
+            // map Document → DocumentResponse
+            DocumentResponse response = new DocumentResponse();
+            response.setDocumentId(saved.getDocumentId());
+            response.setApplicationNumber(saved.getApplicationNumber());
+            response.setCustomerId(saved.getCustomerId());
+            response.setAddressProofType(saved.getAddressProofType());
+    
+            response.setAddressProofPath(saved.getAddressProofAddress());
+            response.setPanProofPath(saved.getPanAddress());
+            response.setIncomeProofPath(saved.getIncomeProofAddress());
+    
+            response.setAddressProofStatus(saved.getAddressProofStatus());
+            response.setPanProofStatus(saved.getPanStatus());
+            response.setIncomeProofStatus(saved.getIncomeProofStatus());
+    
             return new ResponseEntity<>(response, HttpStatus.CREATED);
-
+    
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     /**
      * Endpoint to fetch Document by ID.
